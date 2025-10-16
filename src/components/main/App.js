@@ -12,9 +12,9 @@ function App() {
         <div className="Parrafo">
           <p>Bienvenido a mi aplicación, esto fue creado con JavaScript en React</p>
         </div>
-        <MiLista titulo=" Persona1" nombre1="Juan" nombre2="Pedro" nombre3="María" nombre4="Sofía"/>
-        <MiLista titulo=" Persona2" nombre1="Juan" nombre2="Pedro" nombre3="María" nombre4="Sofía"/>
-        <MiLista titulo=" Persona3" nombre1="Juan" nombre2="Pedro" nombre3="María" nombre4="Sofía"/>
+        <MiLista titulo=" Persona1" nombre1="Paco" nombre2="Lucas" nombre3="Ainara" nombre4="Rubén"/>
+        <MiLista titulo=" Persona2" nombre1="Paco" nombre2="Lucas" nombre3="Ainara" nombre4="Rubén"/>
+        <MiLista titulo=" Persona3" nombre1="Paco" nombre2="Lucas" nombre3="Ainara" nombre4="Rubén"/>
        <Footer/> 
     </div>
   );
