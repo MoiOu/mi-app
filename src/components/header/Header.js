@@ -6,7 +6,7 @@ class Header extends React.Component{
         return(
             <div id="header">
                 <h3>
-                    Bienvenido a la página de contactos
+                    Bienvenido a la página de incidencias
                 </h3>
             </div>
         );
