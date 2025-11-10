@@ -1,5 +1,3 @@
-import React, { useState } from "react";
-
 function MiLista(props){
 
     return(
@@ -29,3 +27,5 @@ function MiLista(props){
 }
 
 export default MiLista;
+
+
