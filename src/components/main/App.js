@@ -1,9 +1,10 @@
-import './App.css';
-import  MiLista from '../lista/MiLista.js';
+
+import  MiLista from '../lista/IncidentList.js';
 import Header from '../header/Header.js';
 import Footer from '../footer/Footer.js';
 import React, { useState } from 'react';
 import Form from '../Form.js';
+import Fondo from '../img/fondopan.jpg'
 
 function App() {
   const [incidencias, setIncidencia]= useState ([
@@ -22,7 +23,7 @@ function App() {
     {
         id_incidencias: 2,
         id_usuario: "moi",
-        titulo: "Proyecto averia",
+        titulo: "Fallo Eléctrico",
 
         descripcion: "Ordenador no enciende",
         categoria: "Hardware",
@@ -35,7 +36,7 @@ function App() {
     {
         id_incidencias: 3,
         id_usuario: "moi",
-        titulo: "Proyecto averia",
+        titulo: "Fallo Impresora",
 
         descripcion: "Impresora sin conexion",
         categoria: "Hardware",
@@ -48,7 +49,7 @@ function App() {
     {
         id_incidencias: 4,
         id_usuario: "moi",
-        titulo: "Proyecto averia",
+        titulo: "Problema Router",
         
         descripcion: "WIFI no disponible",
         categoria: "Hardware",
@@ -84,21 +85,23 @@ function App() {
     }
   
   return (
-    <>
+    
+    <div className="card" style={{ backgroundImage: `url(${Fondo})`, backgroundSize: "cover", backgroundRepeat: "no-repeat" }}>
+
     <Header/>
-    <h2>Mi aplicacion </h2>
+    <h2 className='mb-4 text-center '>Mi aplicacion </h2>
      
-    <div className="Contenedor-incidencias">
-      <main>
-        <p>Este es mi contenido de la app</p>
+    <div className="container-fluid mt 4 row">
+      <main className='col-md-6 '>
+        <p>Esta aplicacion muestra el contenido almacenado de mi app</p>
           <MiLista incidencias={incidencias}/>
           </main>
-        <aside>
+        <aside className='col-md-6 '>
        <Form agregarIncidencia={agregarIncidencia}/>
         </aside>
     </div>
     <Footer/>
-    </>
+    </div>
 
   );
 }
