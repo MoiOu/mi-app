@@ -2,88 +2,98 @@
 import  MiLista from '../lista/IncidentList.js';
 import Header from '../header/Header.js';
 import Footer from '../footer/Footer.js';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Form from '../Form.js';
 import Fondo from '../img/fondopan.jpg'
 
+
 function App() {
-  const [incidencias, setIncidencia]= useState ([
-              {
-        id_incidencias: 1,
-        id_usuario: "moi",
-        titulo: "Proyecto averia",
-        descripcion: "Proyecto averiado en el aula 2",
-        categoria: "Hardware",
-        nivel_urgencia: "Media",
-        fecha_registro: "2025-10-20",
-        estado: "Abierto",
-        ubicacion: "B205"
 
-    },
-    {
-        id_incidencias: 2,
-        id_usuario: "moi",
-        titulo: "Fallo Eléctrico",
+    const INCIDENCIA_API_URL = 'http://localhost:3004/incidencias';
+    const USUARIO_API_URL = 'http://localhost:3004/users';
 
-        descripcion: "Ordenador no enciende",
-        categoria: "Hardware",
-        nivel_urgencia: "Baja",
-        fecha_registro: "2025-10-20",
-        estado: "Abierto",
-        ubicacion: "B205"
+    const [usuarios, setUsuarios] = useState([]);
+    const [incidencias, setIncidencias] = useState([]);
 
-    },
-    {
-        id_incidencias: 3,
-        id_usuario: "moi",
-        titulo: "Fallo Impresora",
+    useEffect(() => {
 
-        descripcion: "Impresora sin conexion",
-        categoria: "Hardware",
-        nivel_urgencia: "Media",
-        fecha_registro: "2025-10-20",
-        estado: "Abierto",
-        ubicacion: "B205"
+    const obtenerIncidencias = async () => {
+        try {
+            let response = await fetch(INCIDENCIA_API_URL);
+        if (!response.ok) {
+                throw new Error("HTTP Error");
+            }
+            const data = await response.json();
+            console.log(data);
+            setIncidencias(data);
+        } catch (e) {
+            console.error("Error al cargar las incidencias:", e);
+        }
+    };
 
-    },
-    {
-        id_incidencias: 4,
-        id_usuario: "moi",
-        titulo: "Problema Router",
-        
-        descripcion: "WIFI no disponible",
-        categoria: "Hardware",
-        nivel_urgencia: "Alta",
-        fecha_registro: "2025-10-20",
-        estado: "Abierto",
-        ubicacion: "B205"
-    }
-    ]);
-  
-      
+    const obtenerUsuarios = async () => {
+        try {
+            let response = await fetch(USUARIO_API_URL);
+                if (!response.ok) {
+                    throw new Error("HTTP Error");
+            }
+                const data = await response.json();
+                console.log(data);
+                 setUsuarios(data);
+            } catch (e) {
+                 console.error("Error al cargar los usuarios:", e);
+            }
+        };
+
+        obtenerIncidencias();
+        obtenerUsuarios();
+
+    }, []);
     
-    const agregarIncidencia=( titulo_nuevo, usuario_nuevo, descripcion_nuevo, categoria_nuevo,nivel_urgencia_nuevo, ubicacion_nuevo)=>{
-      const fecha= new Date();
-      const year = fecha.getFullYear();
-      const month = String(fecha.getMonth()+1).padStart(2,'0');
-      const day = String (fecha.getDate()).padStart(2,'0');
-      const fecha_formateada= year+ "-" + month + "-" + day;
-      const nueva_incidencia= {
-        id_incidencias: incidencias.length +1 ,
-        id_usuario: usuario_nuevo,
-        titulo: titulo_nuevo,
-        descripcion: descripcion_nuevo,
-        categoria: categoria_nuevo,
-        nivel_urgencia: nivel_urgencia_nuevo,
-        fecha_registro: fecha_formateada,
-        estado: "Abierta",
-        ubicacion: ubicacion_nuevo
-      }
-      setIncidencia([...incidencias,nueva_incidencia]);
-      console.log("Datos recibidos",nueva_incidencia);
-      
-    }
-  
+    const agregarIncidencia = (
+        titulo_nuevo,
+        usuario_input,
+        descripcion_nuevo,
+        categoria_nuevo,
+        nivel_urgencia_nuevo,
+        ubicacion_nuevo
+    ) => {
+
+        const fecha = new Date();
+         const year = fecha.getFullYear();
+        const mes = fecha.getMonth() + 1;
+        const dia = fecha.getDate();
+        const fecha_formateada = `${year}-${mes}-${dia}`;
+
+        let usuarioCompleto = null;
+        const inputEmail = usuario_input.email ? usuario_input.email.toLowerCase().trim() : '';
+
+        if (inputEmail) {
+            usuarioCompleto = usuarios.find(u => 
+                u.email && u.email.toLowerCase() === inputEmail
+            );
+        }
+
+        let usuario_para_guardar;
+        if (usuarioCompleto) {
+         usuario_para_guardar = usuarioCompleto;
+        }
+        
+        const nueva_incidencia = {
+    id: incidencias.length + 1,
+    usuario: usuario_input, 
+    titulo: titulo_nuevo,
+    descripcion: descripcion_nuevo,
+    categoria: categoria_nuevo,
+    nivel_urgencia: nivel_urgencia_nuevo,
+    ubicacion: ubicacion_nuevo,
+    fecha_registro: fecha_formateada,
+    estado: "Abierto"
+};
+
+
+    setIncidencias([...incidencias, nueva_incidencia]);
+    };
   return (
     
     <div className="card" style={{ backgroundImage: `url(${Fondo})`, backgroundSize: "cover", backgroundRepeat: "no-repeat" }}>
@@ -105,5 +115,6 @@ function App() {
 
   );
 }
+
 
 export default App;
