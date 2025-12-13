@@ -1,25 +1,41 @@
-import React, { useState } from "react";
+import React from "react";
 
-function MiLista(props){
+const IncidentList = ({ incidencias }) => {
+  if (!incidencias || incidencias.length === 0) {
+    return <p>No hay incidencias registradas.</p>;
+  }
 
-   return(
-    <div className="container mt-3">
-        <div>
-            {props.incidencias.map((i) => (
-                <div key={i.id_incidencia} className="mb-4 pb-2 border-bottom text-black "style={{ backgroundColor: "#dfddddff", color: "white" }}>
-                    <dt className="text-titulopersonalizado-azul">
-                        <strong>Título: {i.titulo}</strong><br/>
-                    </dt>
-                    <dd className="text-muted"><strong>Descripción: </strong>{i.descripcion}</dd>
-                    <dd><strong>Usuario: </strong>{i.id_usuario}</dd>
-                    <dd><strong>Urgencia: </strong>{i.nivel_urgencia}</dd>
-                    <dd><strong>Ubicación: </strong>{i.ubicacion}</dd><br/><br/>
-                </div>
-            ))}
-        </div>
+  return (
+    <div className="table-responsive">
+      <table className="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Usuario</th>
+            <th>Urgencia</th>
+            <th>Ubicación</th>
+            <th>Estado</th>
+            <th>Fecha Registro</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {incidencias.map((inc) => (
+            <tr key={inc.id}>
+              <td>{inc.id}</td>
+              <td>{inc.titulo}</td>
+              <td>{inc.usuario?.email ?? inc.usuario?.nombre ?? inc.usuario}</td>
+              <td>{inc.nivel_urgencia}</td>
+              <td>{inc.ubicacion}</td>
+              <td>{inc.estado}</td>
+              <td>{inc.fecha_registro}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-);
+  );
+};
 
-}
-
-export default MiLista;
+export default IncidentList;
