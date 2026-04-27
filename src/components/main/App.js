@@ -8,133 +8,110 @@ import Login from '../Login.js';
 import Fondo from '../img/fondopan.jpg'; 
 
 function App() {
-  const INCIDENCIA_API = 'http://localhost:3004/incidencias';
-  const USUARIO_API = 'http://localhost:3004/users';
-  const LOGIN_API_URL = 'http://localhost:3004/login'; 
+  // Configuración de Endpoints
+  const URL_REPORTES = 'http://localhost:3004/incidencias';
+  const URL_CLIENTES = 'http://localhost:3004/users';
+  const URL_ACCESO = 'http://localhost:3004/login'; 
 
-  const [usuarios, setUsuarios] = useState([]);
-  const [incidencias, setIncidencias] = useState([]);
-  const [usuarioLogueado, setUsuarioLogueado] = useState(null); 
+  // Estados de la aplicación
+  const [listaUsuarios, setListaUsuarios] = useState([]);
+  const [listadoTickets, setListadoTickets] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null); 
 
+  // Carga inicial de datos
   useEffect(() => {
-    const obtenerIncidencias = async () => {
+    const cargarInformacionBase = async () => {
       try {
-        let response = await fetch(INCIDENCIA_API);
-        if (!response.ok) throw new Error("Error al obtener incidencias");
-        const data = await response.json();
-        setIncidencias(data);
-      } catch (e) {
-        console.error(e.message);
+        const [resTickets, resUsers] = await Promise.all([
+          fetch(URL_REPORTES),
+          fetch(URL_CLIENTES)
+        ]);
+
+        if (resTickets.ok && resUsers.ok) {
+          setListadoTickets(await resTickets.json());
+          setListaUsuarios(await resUsers.json());
+        }
+      } catch (err) {
+        console.error("Error en la carga:", err.message);
       }
     };
 
-    const obtenerUsuarios = async () => {
-      try {
-        let response = await fetch(USUARIO_API);
-        if (!response.ok) throw new Error("Error al obtener usuarios");
-        const data = await response.json();
-        setUsuarios(data);
-      } catch (e) {
-        console.error(e.message);
-      }
-    };
-
-    obtenerIncidencias();
-    obtenerUsuarios();
+    cargarInformacionBase();
   }, []);
 
+  // Gestión de sesión persistente
   useEffect(() => {
-    const obtenerUsuarioLogueado = () => {
-      const savedToken = localStorage.getItem('authToken');
-      if (savedToken) {
+    const verificarCredenciales = () => {
+      const tokenActivo = localStorage.getItem('authToken');
+      if (tokenActivo) {
         try {
-          const decodedUser = jwtDecode(savedToken);
-          if (decodedUser) {
-            const user = usuarios.find((u) => u.email === decodedUser.email);
-            if (user) {
-              setUsuarioLogueado(user);
-            }
-          }
-        } catch (error) {
+          const infoToken = jwtDecode(tokenActivo);
+          const coincidencias = listaUsuarios.find(u => u.email === infoToken.email);
+          if (coincidencias) setCurrentUser(coincidencias);
+        } catch (e) {
           localStorage.removeItem('authToken');
         }
       }
     };
-    obtenerUsuarioLogueado();
-  }, [usuarios]);
+    verificarCredenciales();
+  }, [listaUsuarios]);
 
-  const cerrarSesion = () => {
+  const finalizarSesion = () => {
     localStorage.removeItem('authToken');
-    setUsuarioLogueado(null);
+    setCurrentUser(null);
   };
 
-  const onLogin = async (email, password) => {
+  const manejarAutenticacion = async (correo, clave) => {
     try {
-      const response = await fetch(LOGIN_API_URL, {
+      const peticion = await fetch(URL_ACCESO, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email, password: password }) 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: correo, password: clave }) 
       });
 
-      if (response.ok) {
-        const userData = await response.json();
-        localStorage.setItem("authToken", JSON.stringify(userData["accessToken"]));
-        setUsuarioLogueado(userData.user);
+      if (peticion.ok) {
+        const resultado = await peticion.json();
+        localStorage.setItem("authToken", JSON.stringify(resultado["accessToken"]));
+        setCurrentUser(resultado.user);
       } else {
-        const errorData = await response.json();
-        alert(`Fallo de autenticación. Error: ${response.status}: ${errorData}`); 
+        alert("Credenciales incorrectas"); 
       }
     } catch (error) {
-      console.error(error);
-      alert("Fallo de conexión con el servidor");
+      alert("Error de red");
     }
   };
 
-  const agregarIncidencia = async (titulo_nuevo, email_usuario_nuevo, descripcion_nuevo, categoria_nuevo, nivel_urgencia_nuevo, ubicacion_nuevo) => {
-    const fecha = new Date();
-    const year = fecha.getFullYear();
-    const month = String(fecha.getMonth() + 1).padStart(2, '0');
-    const day = String(fecha.getDate()).padStart(2, '0');
-    const fecha_formateada = `${year}-${month}-${day}`;
+  const registrarNuevoReporte = async (nom, mail, info, cat, urg, sit) => {
+    const marcaTemporal = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    const propietario = listaUsuarios.find(u => u.email === mail);
 
-    let usuarioEncontrado = usuarios.find((u) => u.email === email_usuario_nuevo);
+    if (!propietario) return alert("Email no registrado");
 
-    if (usuarioEncontrado) {
-      const nueva_incidencia = {
-        usuario: usuarioEncontrado, 
-        titulo: titulo_nuevo,
-        descripcion: descripcion_nuevo,
-        categoria: categoria_nuevo,
-        nivel_urgencia: nivel_urgencia_nuevo,
-        fecha_registro: fecha_formateada,
-        estado: "Abierta",
-        ubicacion: ubicacion_nuevo,
-        comentarios: [] 
-      };
+    const payload = {
+      usuario: propietario, 
+      titulo: nom,
+      descripcion: info,
+      categoria: cat,
+      nivel_urgencia: urg,
+      fecha_registro: marcaTemporal,
+      estado: "Abierta",
+      ubicacion: sit,
+      comentarios: [] 
+    };
 
-      try {
-        let response = await fetch(INCIDENCIA_API, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(nueva_incidencia)
-        });
+    try {
+      const envio = await fetch(URL_REPORTES, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-        if (!response.ok) {
-          throw new Error(`Fallo de la petición POST. Estado: ${response.status}`);
-        }
-
-        let data = await response.json();
-        setIncidencias([...incidencias, data]);
-
-      } catch (e) {
-        console.error(e);
-        alert("Error al guardar en el servidor");
+      if (envio.ok) {
+        const nuevoItem = await envio.json();
+        setListadoTickets(prev => [...prev, nuevoItem]);
       }
-
-    } else {
-      alert("No se puede crear incidencia. Usuario no encontrado (Verifica el email).");
+    } catch (err) {
+      alert("No se pudo guardar");
     }
   };
 
@@ -144,31 +121,30 @@ function App() {
       style={{
         backgroundImage: `url(${Fondo})`,
         backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
         minHeight: "100vh"
       }}
     >
       <Header />
-      {usuarioLogueado && (
+      {currentUser && (
         <div className="text-end p-3">
-          <button className="btn btn-danger" onClick={cerrarSesion}>
-            Cerrar sesión
+          <button className="btn btn-danger" onClick={finalizarSesion}>
+            Salir
           </button>
         </div>
       )}
-      <h2 className='mb-4 text-center mt-3'>Mi aplicación</h2>
+      <h2 className='mb-4 text-center mt-3'>Panel de Gestión</h2>
       <div className="container-fluid mt-4 row justify-content-center">
-        {!usuarioLogueado ? (
+        {!currentUser ? (
           <aside className='col-md-4'>
-            <Login onLogin={onLogin} />
+            <Login onLogin={manejarAutenticacion} />
           </aside>
         ) : (
           <>
             <main className='col-md-8'>
-              <IncidentList incidencias={incidencias} />
+              <IncidentList incidencias={listadoTickets} />
             </main>
             <aside className='col-md-4'>
-              <Form agregarIncidencia={agregarIncidencia} />
+              <Form agregarIncidencia={registrarNuevoReporte} />
             </aside>
           </>
         )}
