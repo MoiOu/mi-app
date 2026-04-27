@@ -20,7 +20,7 @@ function App() {
 
   // Carga inicial de datos
   useEffect(() => {
-    const cargarInformacionBase = async () => {
+    const obtenerIncidencias  = async () => {
       try {
         const [resTickets, resUsers] = await Promise.all([
           fetch(URL_REPORTES),
@@ -36,12 +36,12 @@ function App() {
       }
     };
 
-    cargarInformacionBase();
+    obtenerIncidencias();
   }, []);
 
   // Gestión de sesión persistente
   useEffect(() => {
-    const verificarCredenciales = () => {
+    const obtenerUsuario = () => {
       const tokenActivo = localStorage.getItem('authToken');
       if (tokenActivo) {
         try {
@@ -53,7 +53,7 @@ function App() {
         }
       }
     };
-    verificarCredenciales();
+    obtenerUsuario();
   }, [listaUsuarios]);
 
   const finalizarSesion = () => {
