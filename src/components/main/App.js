@@ -13,33 +13,30 @@ function App() {
   const URL_CLIENTES = 'http://localhost:3004/users';
   const URL_ACCESO = 'http://localhost:3004/login'; 
 
-  // Estados de la aplicación
+  
   const [listaUsuarios, setListaUsuarios] = useState([]);
   const [listadoTickets, setListadoTickets] = useState([]);
   const [currentUser, setCurrentUser] = useState(null); 
 
-  // Carga inicial de datos
+  
   useEffect(() => {
-    const obtenerIncidencias  = async () => {
+    const obtenerIncidencias = async () => {
       try {
-        const [resTickets, resUsers] = await Promise.all([
-          fetch(URL_REPORTES),
-          fetch(URL_CLIENTES)
-        ]);
+        const resTickets = await fetch(URL_REPORTES);
+        const dataTickets = await resTickets.json();
+        setListadoTickets(dataTickets);
 
-        if (resTickets.ok && resUsers.ok) {
-          setListadoTickets(await resTickets.json());
-          setListaUsuarios(await resUsers.json());
-        }
+        const resUsers = await fetch(URL_CLIENTES);
+        const dataUsers = await resUsers.json();
+        setListaUsuarios(dataUsers);
       } catch (err) {
         console.error("Error en la carga:", err.message);
       }
     };
-
     obtenerIncidencias();
   }, []);
 
-  // Gestión de sesión persistente
+  
   useEffect(() => {
     const obtenerUsuario = () => {
       const tokenActivo = localStorage.getItem('authToken');
@@ -47,7 +44,9 @@ function App() {
         try {
           const infoToken = jwtDecode(tokenActivo);
           const coincidencias = listaUsuarios.find(u => u.email === infoToken.email);
-          if (coincidencias) setCurrentUser(coincidencias);
+          if (coincidencias) {
+            setCurrentUser(coincidencias);
+          }
         } catch (e) {
           localStorage.removeItem('authToken');
         }
@@ -81,40 +80,44 @@ function App() {
     }
   };
 
-  const registrarNuevoReporte = async (nom, mail, info, cat, urg, sit) => {
-    const marcaTemporal = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
-    const propietario = listaUsuarios.find(u => u.email === mail);
+ const registrarNuevoReporte = async (nom, mail, info, cat, urg, sit) => {
+    const fecha_registro = new Date().toISOString().split('T')[0];
 
-    if (!propietario) return alert("Email no registrado");
+    const usuario = listaUsuarios.find(u => u.email === mail);
 
-    const payload = {
-      usuario: propietario, 
-      titulo: nom,
-      descripcion: info,
-      categoria: cat,
-      nivel_urgencia: urg,
-      fecha_registro: marcaTemporal,
-      estado: "Abierta",
-      ubicacion: sit,
-      comentarios: [] 
-    };
+    if (usuario) {
+      const nuevaIncidencia = {
+        usuario: usuario,
+        titulo: nom,
+        descripcion: info,
+        categoria: cat,
+        nivel_urgencia: urg,
+        fecha_registro: fecha_registro,
+        estado: "Abierta",
+        ubicacion: sit,
+        comentarios: []
+      };
 
-    try {
-      const envio = await fetch(URL_REPORTES, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      try {
+        const response = await fetch(URL_REPORTES, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nuevaIncidencia)
+        });
 
-      if (envio.ok) {
-        const nuevoItem = await envio.json();
-        setListadoTickets(prev => [...prev, nuevoItem]);
+        if (response.ok) {
+          const data = await response.json();
+          setListadoTickets([...listadoTickets, data]);
+        }
+      } catch (error) {
+        alert("Error al realizar la petición POST");
       }
-    } catch (err) {
-      alert("No se pudo guardar");
+    } else {
+      alert("Email no registrado");
     }
   };
 
+  
   return (
     <div
       className="card"
@@ -125,6 +128,7 @@ function App() {
       }}
     >
       <Header />
+      
       {currentUser && (
         <div className="text-end p-3">
           <button className="btn btn-danger" onClick={finalizarSesion}>
@@ -132,7 +136,9 @@ function App() {
           </button>
         </div>
       )}
+
       <h2 className='mb-4 text-center mt-3'>Panel de Gestión</h2>
+
       <div className="container-fluid mt-4 row justify-content-center">
         {!currentUser ? (
           <aside className='col-md-4'>
@@ -149,6 +155,7 @@ function App() {
           </>
         )}
       </div>
+      
       <Footer />
     </div>
   );

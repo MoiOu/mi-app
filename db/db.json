@@ -319,6 +319,29 @@
       "ubicacion": "ddfd",
       "comentarios": [],
       "id": 14
+    },
+    {
+      "usuario": {
+        "id": 1,
+        "nombre": "Ana",
+        "email": "ana.lopez@educastur.org",
+        "password": "$2y$10$paOaxwKhEBC4W/cVeG85puc9W/hoMlzquXQ/6hrMD6VdqIc/mEToq",
+        "rol": {
+          "id": 1,
+          "nombre_rol": "comun",
+          "descripcion": "Usuario regular del sistema"
+        },
+        "fecha_registro": "2025-10-21"
+      },
+      "titulo": "tehh",
+      "descripcion": "dwqdqdqfqfqefqefqfeqe",
+      "categoria": "Infraestructura",
+      "nivel_urgencia": "Baja",
+      "fecha_registro": "2026-04-28",
+      "estado": "Abierta",
+      "ubicacion": "ddfd",
+      "comentarios": [],
+      "id": 15
     }
   ],
   "users": [
